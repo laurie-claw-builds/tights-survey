@@ -4,6 +4,7 @@ import { appendFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { SampleRound } from '@/lib/sizing';
 
 export interface SurveyResponse {
   name: string;
@@ -21,9 +22,8 @@ export interface SurveyResponse {
   compressionFeel: string;
   problemAreas: string[];
   fitComments: string;
-  turnoutSupport: string;
-  turnoutComments: string;
   followUpEmail: string;
+  sampleRound: SampleRound;
 }
 
 export async function submitSurvey(data: SurveyResponse): Promise<{ success: boolean; error?: string }> {

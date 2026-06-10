@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { submitSurvey, SurveyResponse } from '@/app/actions';
-import { calculateSize, inchesToCm, SIZE_ORDER, Size } from '@/lib/sizing';
+import { calculateSize, inchesToCm, SIZE_ORDER, Size, SampleRound } from '@/lib/sizing';
 import Step1Measurements from './Step1Measurements';
 import Step2Recommendation from './Step2Recommendation';
 import Step3FitFeedback from './Step3FitFeedback';
@@ -37,14 +37,12 @@ export interface FitData {
 }
 
 export interface AdditionalData {
-  turnoutSupport: string;
-  turnoutComments: string;
   followUpEmail: string;
 }
 
 const TOTAL_STEPS = 4;
 
-export default function SurveyClient() {
+export default function SurveyClient({ sampleRound = 'round-1' }: { sampleRound?: SampleRound }) {
   const [step, setStep] = useState(1);
   const [measurements, setMeasurements] = useState<MeasurementsData | null>(null);
   const [recommendation, setRecommendation] = useState<RecommendationData | null>(null);
@@ -58,7 +56,7 @@ export default function SurveyClient() {
     const waistCm = data.unit === 'in' ? inchesToCm(parseFloat(data.waist)) : parseFloat(data.waist);
     const hipCm = data.unit === 'in' ? inchesToCm(parseFloat(data.hip)) : parseFloat(data.hip);
 
-    const result = calculateSize(heightCm, waistCm, hipCm);
+    const result = calculateSize(heightCm, waistCm, hipCm, sampleRound);
 
     setMeasurements(data);
     setRecommendation({
@@ -104,9 +102,8 @@ export default function SurveyClient() {
       compressionFeel: fitData.compressionFeel,
       problemAreas: fitData.problemAreas,
       fitComments: fitData.fitComments,
-      turnoutSupport: additional.turnoutSupport,
-      turnoutComments: additional.turnoutComments,
       followUpEmail: additional.followUpEmail,
+      sampleRound,
     };
 
     const result = await submitSurvey(payload);
@@ -130,6 +127,11 @@ export default function SurveyClient() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-[#1B1B1B] mb-1">Backalast Turnout Tights</h1>
           <p className="text-[#6D7B87] text-sm font-medium">Size Survey</p>
+          {sampleRound === 'round-2' && (
+            <div className="inline-block bg-[#B4406A] text-white text-xs font-semibold px-3 py-1 rounded-full mt-1">
+              Round 2 — New Kids Samples
+            </div>
+          )}
         </div>
 
         {/* Progress */}

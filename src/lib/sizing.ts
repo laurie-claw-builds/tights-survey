@@ -1,4 +1,5 @@
 export type Size = 'CM' | 'CL' | '3XS' | '2XS' | 'XS' | 'S' | 'M' | 'L' | 'XL';
+export type SampleRound = 'round-1' | 'round-2';
 
 export interface SizeChartEntry {
   size: Size;
@@ -10,7 +11,7 @@ export interface SizeChartEntry {
   wbHeight: number;
 }
 
-export const SIZE_CHART: SizeChartEntry[] = [
+export const ROUND_1_SIZE_CHART: SizeChartEntry[] = [
   { size: 'CM',  pantLength: 83, waistFlat: 20,   hipFlat: 29,   midCalf: 10.5, ankleOpen: 6.5, wbHeight: 11.5 },
   { size: 'CL',  pantLength: 84, waistFlat: 22,   hipFlat: 31,   midCalf: 11.0, ankleOpen: 7.0, wbHeight: 11.5 },
   { size: '3XS', pantLength: 85, waistFlat: 24,   hipFlat: 33,   midCalf: 12.0, ankleOpen: 7.5, wbHeight: 11.5 },
@@ -21,6 +22,23 @@ export const SIZE_CHART: SizeChartEntry[] = [
   { size: 'L',   pantLength: 90, waistFlat: 35.5, hipFlat: 44.5, midCalf: 16.0, ankleOpen: 9.5, wbHeight: 11.5 },
   { size: 'XL',  pantLength: 91, waistFlat: 38,   hipFlat: 47,   midCalf: 17.0, ankleOpen: 10.0, wbHeight: 11.5 },
 ];
+
+export const ROUND_2_SIZE_CHART: SizeChartEntry[] = [
+  // TODO: replace with Round 2 measurements
+  { size: 'CM',  pantLength: 83, waistFlat: 20,   hipFlat: 29,   midCalf: 10.5, ankleOpen: 6.5, wbHeight: 11.5 },
+  // TODO: replace with Round 2 measurements
+  { size: 'CL',  pantLength: 84, waistFlat: 22,   hipFlat: 31,   midCalf: 11.0, ankleOpen: 7.0, wbHeight: 11.5 },
+  { size: '3XS', pantLength: 85, waistFlat: 24,   hipFlat: 33,   midCalf: 12.0, ankleOpen: 7.5, wbHeight: 11.5 },
+  { size: '2XS', pantLength: 86, waistFlat: 26,   hipFlat: 35,   midCalf: 13.0, ankleOpen: 8.0, wbHeight: 11.5 },
+  { size: 'XS',  pantLength: 87, waistFlat: 28,   hipFlat: 37,   midCalf: 13.5, ankleOpen: 8.5, wbHeight: 11.5 },
+  { size: 'S',   pantLength: 88, waistFlat: 30.5, hipFlat: 39.5, midCalf: 14.5, ankleOpen: 9.0, wbHeight: 11.5 },
+  { size: 'M',   pantLength: 89, waistFlat: 33,   hipFlat: 42,   midCalf: 15.0, ankleOpen: 9.0, wbHeight: 11.5 },
+  { size: 'L',   pantLength: 90, waistFlat: 35.5, hipFlat: 44.5, midCalf: 16.0, ankleOpen: 9.5, wbHeight: 11.5 },
+  { size: 'XL',  pantLength: 91, waistFlat: 38,   hipFlat: 47,   midCalf: 17.0, ankleOpen: 10.0, wbHeight: 11.5 },
+];
+
+// Keep SIZE_CHART as an alias for backward compatibility
+export const SIZE_CHART = ROUND_1_SIZE_CHART;
 
 export const SIZE_ORDER: Size[] = ['CM', 'CL', '3XS', '2XS', 'XS', 'S', 'M', 'L', 'XL'];
 
@@ -61,12 +79,13 @@ function sizeFromHeight(heightCm: number): Size {
  */
 function sizeFromFlatMeasurement(
   target: number,
-  field: 'waistFlat' | 'hipFlat'
+  field: 'waistFlat' | 'hipFlat',
+  chart: SizeChartEntry[]
 ): Size {
   // Walk from largest to smallest, find first that fits (flatMeasurement <= target)
-  for (let i = SIZE_CHART.length - 1; i >= 0; i--) {
-    if (SIZE_CHART[i][field] <= target) {
-      return SIZE_CHART[i].size;
+  for (let i = chart.length - 1; i >= 0; i--) {
+    if (chart[i][field] <= target) {
+      return chart[i].size;
     }
   }
   // If nothing fits, return smallest
@@ -84,15 +103,18 @@ export interface SizingResult {
 export function calculateSize(
   heightCm: number,
   waistCm: number,
-  hipCm: number
+  hipCm: number,
+  round: SampleRound = 'round-1'
 ): SizingResult {
+  const chart = round === 'round-2' ? ROUND_2_SIZE_CHART : ROUND_1_SIZE_CHART;
+
   const heightSize = sizeFromHeight(heightCm);
 
   const targetFlatWaist = waistCm * 0.40;
-  const waistSize = sizeFromFlatMeasurement(targetFlatWaist, 'waistFlat');
+  const waistSize = sizeFromFlatMeasurement(targetFlatWaist, 'waistFlat', chart);
 
   const targetFlatHip = hipCm * 0.425;
-  const hipSize = sizeFromFlatMeasurement(targetFlatHip, 'hipFlat');
+  const hipSize = sizeFromFlatMeasurement(targetFlatHip, 'hipFlat', chart);
 
   const heightIdx = getSizeIndex(heightSize);
   const waistIdx = getSizeIndex(waistSize);
